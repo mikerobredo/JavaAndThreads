@@ -1,0 +1,96 @@
+import java.util.Scanner;
+import java.util.concurrent.*;
+
+public class drakkarVikingo extends Thread
+{
+    /**
+    * @param tipo, entero que contiene el tipo de vikingo.
+    * @param lleno, semaforo para controlar si está lleno el vector.
+    * @param vacio, semaforo para controlar si está vacio el vector.
+    * @param control, semaforo para controlar el uso de la marmita.
+    * @param marmita, vector que contiene la comida.
+    * @param aux, entero que almacena temporalmente datos.
+    * @param cont, entero contador.
+    */
+   	int tipo;
+   	static Semaphore lleno = new Semaphore(0);
+   	static Semaphore vacio = new Semaphore(9);
+   	static Semaphore control = new Semaphore (1);
+   	static int marmita[] = new int [10];
+   	static int aux;
+   	static int cont = 0;
+
+    /**Constructor por defecto*/
+    public drakkarVikingo(){}
+
+    /**
+    * Constructor de  drakkarVikingo
+    * @param t, entero, con el tipo de Vikingo
+    */
+    public drakkarVikingo(int t)
+    {
+        tipo=t;
+    }//drakkarVikingo
+
+	/**
+    * Metodo que genera un numero aleatorio
+    * @return numero aleatorio
+	*/
+    public int aleatorio()
+    {
+    	return (int)(Math.random()*10);
+    }//aleatorio
+
+    public void run()
+    {
+    	if(tipo==0)
+        {
+    		while(true)
+            {
+    			aux=aleatorio();
+    			try
+                {
+    				vacio.acquire();
+    				control.acquire();
+    			}catch (InterruptedException e){}
+	    				
+                marmita[cont]=aux;
+    			cont++;
+	    		System.out.println("Cocinero activo");
+    			control.release();
+    			lleno.release();
+    		}//while
+    	}
+        else
+        {
+    		while(true)
+            {
+    			try
+                {
+    				lleno.acquire();
+    				control.acquire();
+    			}catch (InterruptedException e){}
+    					
+                aux=marmita[cont];
+    			cont--;
+    			System.out.println("Vikingo activo");
+    			control.release();
+    			vacio.release();
+    		}//while
+    	}//else
+    }//run
+
+    public static void main (String[] args)
+    {
+    	drakkarVikingo cocinero = new drakkarVikingo(0);
+    	drakkarVikingo vikingo = new drakkarVikingo(1);
+
+    	cocinero.start();
+    	vikingo.start();
+        try
+        {
+            cocinero.join();
+            vikingo.join();
+        } catch(Exception e) {System.out.println("Error en semaforo");}
+    }//main
+}//drakkarVikingo
